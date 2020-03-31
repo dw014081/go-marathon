@@ -48,7 +48,8 @@ func (app *Application) UnmarshalJSON(b []byte) error {
 	if err := json.Unmarshal(b, aux); err != nil {
 		return fmt.Errorf("malformed application definition %v", err)
 	}
-	env := &map[string]string{}
+	genericData := make(map[string]interface{})
+	env := &genericData
 	secrets := &map[string]Secret{}
 
 	for envName, genericEnvValue := range aux.Env {
@@ -87,7 +88,7 @@ func (app *Application) MarshalJSON() ([]byte, error) {
 
 	if app.Env != nil {
 		for k, v := range *app.Env {
-			env[string(k)] = string(v)
+			env[string(k)] = v
 		}
 	}
 	if app.Secrets != nil {

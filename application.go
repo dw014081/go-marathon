@@ -67,21 +67,21 @@ type Application struct {
 	Networks    *[]PodNetwork `json:"networks,omitempty"`
 
 	// Contains non-secret environment variables. Secrets environment variables are part of the Secrets map.
-	Env                        *map[string]string  `json:"-"`
-	Executor                   *string             `json:"executor,omitempty"`
-	HealthChecks               *[]HealthCheck      `json:"healthChecks,omitempty"`
-	ReadinessChecks            *[]ReadinessCheck   `json:"readinessChecks,omitempty"`
-	Instances                  *int                `json:"instances,omitempty"`
-	Mem                        *float64            `json:"mem,omitempty"`
-	Tasks                      []*Task             `json:"tasks,omitempty"`
-	Ports                      []int               `json:"ports"`
-	PortDefinitions            *[]PortDefinition   `json:"portDefinitions,omitempty"`
-	RequirePorts               *bool               `json:"requirePorts,omitempty"`
-	BackoffSeconds             *float64            `json:"backoffSeconds,omitempty"`
-	BackoffFactor              *float64            `json:"backoffFactor,omitempty"`
-	MaxLaunchDelaySeconds      *float64            `json:"maxLaunchDelaySeconds,omitempty"`
-	TaskKillGracePeriodSeconds *float64            `json:"taskKillGracePeriodSeconds,omitempty"`
-	Deployments                []map[string]string `json:"deployments,omitempty"`
+	Env                        *map[string]interface{} `json:"-"`
+	Executor                   *string                 `json:"executor,omitempty"`
+	HealthChecks               *[]HealthCheck          `json:"healthChecks,omitempty"`
+	ReadinessChecks            *[]ReadinessCheck       `json:"readinessChecks,omitempty"`
+	Instances                  *int                    `json:"instances,omitempty"`
+	Mem                        *float64                `json:"mem,omitempty"`
+	Tasks                      []*Task                 `json:"tasks,omitempty"`
+	Ports                      []int                   `json:"ports"`
+	PortDefinitions            *[]PortDefinition       `json:"portDefinitions,omitempty"`
+	RequirePorts               *bool                   `json:"requirePorts,omitempty"`
+	BackoffSeconds             *float64                `json:"backoffSeconds,omitempty"`
+	BackoffFactor              *float64                `json:"backoffFactor,omitempty"`
+	MaxLaunchDelaySeconds      *float64                `json:"maxLaunchDelaySeconds,omitempty"`
+	TaskKillGracePeriodSeconds *float64                `json:"taskKillGracePeriodSeconds,omitempty"`
+	Deployments                []map[string]string     `json:"deployments,omitempty"`
 	// Available when embedding readiness information through query parameter.
 	ReadinessCheckResults *[]ReadinessCheckResult `json:"readinessCheckResults,omitempty"`
 	Dependencies          []string                `json:"dependencies"`
@@ -105,6 +105,13 @@ type Application struct {
 	Residency             *Residency              `json:"residency,omitempty"`
 	Secrets               *map[string]Secret      `json:"-"`
 	Role                  *string                 `json:"role,omitempty"`
+}
+
+// EnvVarSecret is a secret type environment variable that is stored in the applications
+// Environment Variable(env) configuration.
+// This concept was introduce in Marathon v1.5
+type EnvVarSecret struct {
+	Secret string `json:"secret"`
 }
 
 // ApplicationVersions is a collection of application versions for a specific app in marathon
@@ -380,11 +387,24 @@ func (r *Application) AddEnv(name, value string) *Application {
 	return r
 }
 
+// AddEnvSecret adds a Secret type environment variable to the application
+// name: the name of the secret/variable
+// secret: Any object that represents the secret associated to the above
+func (r *Application) AddEnvSecret(name string, secret EnvVarSecret) *Application {
+	if r.Env == nil {
+		r.EmptyEnvs()
+	}
+	(*r.Env)[name] = secret
+
+	return r
+}
+
 // EmptyEnvs explicitly empties the envs -- use this if you need to empty
 // the environments of an application that already has environments set (setting env to nil will
 // keep the current value)
 func (r *Application) EmptyEnvs() *Application {
-	r.Env = &map[string]string{}
+	genericData := make(map[string]interface{})
+	r.Env = &genericData
 
 	return r
 }

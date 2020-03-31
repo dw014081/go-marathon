@@ -47,6 +47,9 @@
   "dependencies": null,
   "env": {
     "NAME": "frontend_http",
+    "SECRET_ENV": {
+      "secret": "123"
+    },
     "SERVICE_80_NAME": "test_http"
   }
 }

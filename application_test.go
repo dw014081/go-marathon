@@ -82,7 +82,8 @@ func TestApplicationString(t *testing.T) {
 				SetNetwork("", "container/bridge").
 				AddArgs("/usr/sbin/apache2ctl", "-D", "FOREGROUND").
 				AddEnv("NAME", "frontend_http").
-				AddEnv("SERVICE_80_NAME", "test_http"),
+				AddEnv("SERVICE_80_NAME", "test_http").
+				AddEnvSecret("SECRET_ENV", EnvVarSecret{"123"}),
 			expectedAppJSONPath: "tests/app-definitions/TestApplicationString-1.5-output.json",
 			setup: func(app *Application) {
 				app.
@@ -242,6 +243,15 @@ func TestApplicationEnvs(t *testing.T) {
 		assert.Equal(t, "world", (*app.Env)["hello"])
 		assert.Equal(t, "bar", (*app.Env)["foo"])
 	}
+
+	secret1 := EnvVarSecret{"123"}
+	secret2 := EnvVarSecret{"345"}
+	app.AddEnvSecret("secret1", secret1).AddEnvSecret("secret2", secret2)
+	if assert.Equal(t, 4, len((*app.Env))) {
+		assert.Equal(t, secret1, (*app.Env)["secret1"])
+		assert.Equal(t, secret2, (*app.Env)["secret2"])
+	}
+
 	app.EmptyEnvs()
 	assert.NotNil(t, app.Env)
 	assert.Equal(t, 0, len(*app.Env))
